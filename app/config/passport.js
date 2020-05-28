@@ -1,0 +1,77 @@
+var LocalStrategy   = require('passport-local').Strategy;
+var bcrypt = require('bcrypt-nodejs');
+const connection = require("../models/db.js")
+
+module.exports = function(passport) {
+
+    // used to serialize the user for the session
+    passport.serializeUser(function(user, done) {
+        done(null, user.id);
+    });
+
+    // used to deserialize the user
+    passport.deserializeUser(function(id, done) {
+        connection.query("SELECT * FROM users WHERE id = ? ",[id], function(err, rows){
+            done(err, rows[0]);
+        });
+    });
+
+    // SIGNUP
+
+    passport.use(
+        'local-signup',
+        new LocalStrategy({
+            // by default, local strategy uses username and password, we will override with email
+            usernameField : 'username',
+            passwordField : 'password',
+            passReqToCallback : true 
+        },
+        function(req, username, password, done) {
+            connection.query("SELECT * FROM users WHERE username = ?",[username], function(err, rows) {
+                if (err)
+                    return done(err);
+                if (rows.length) {
+                    return done(null, false);
+                } else {
+                    var newUserMysql = {
+                        username: username,
+                        password: bcrypt.hashSync(password, null, null) 
+                    };
+
+                    var insertQuery = "INSERT INTO users ( username, password ) values (?,?)";
+                    connection.query(insertQuery,[newUserMysql.username, newUserMysql.password],function(err, rows) {
+                        newUserMysql.id = rows.insertId;
+
+                        return done(null, newUserMysql);
+                    });
+                }
+            });
+        })
+    );
+
+    // LOGIN
+
+    passport.use(
+        'local-login',
+        new LocalStrategy({
+            usernameField : 'username',
+            passwordField : 'password',
+            passReqToCallback : true 
+        },
+        function(req, username, password, done) { // callback with email and password from our form
+            
+            connection.query("SELECT * FROM users WHERE username = ?",[username], function(err, rows){
+                if (err)
+                    return done(err);
+                if (!rows.length) {
+                    return done(null, false); 
+                }
+
+                if (!bcrypt.compareSync(password, rows[0].password))
+                    return done(null, false);
+
+                return done(null, rows[0]);
+            });
+        })
+    );
+};
