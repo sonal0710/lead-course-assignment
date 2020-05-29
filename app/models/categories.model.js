@@ -6,17 +6,41 @@ class Categories{
   insertAll(categories, courseId) {
     return new Promise(function(resolve,reject){
       async.forEachOf(categories, function (value, key, call) {
-        const newCategory = {
-          course_id: courseId,
-          category_id: value.id
-        }
-        sql.query("INSERT into course_category_relation SET ?", newCategory, function (error, results, fields) {
+        
+        if(value.id === ""){
+          const newCategory = {
+            name: value.name
+          }
+          sql.query("INSERT into course_category SET ?", newCategory, function (error, results, fields) {
             if (error) {
                 reject(error)
             } else {
-                call();
+              const newCategoryRelation = {
+                course_id: courseId,
+                category_id: results.insertId
+              }
+              sql.query("INSERT into course_category_relation SET ?", newCategoryRelation, function (error, results, fields) {
+                  if (error) {
+                      reject(error)
+                  } else {
+                      call();
+                  }
+              });
             }
-        });
+          });
+        } else {
+          const newCategoryRelation = {
+            course_id: courseId,
+            category_id: value.id
+          }
+          sql.query("INSERT into course_category_relation SET ?", newCategoryRelation, function (error, results, fields) {
+              if (error) {
+                  reject(error)
+              } else {
+                  call();
+              }
+          });
+        }
       }, function (err) {
           if (!err) resolve(true);
       });
