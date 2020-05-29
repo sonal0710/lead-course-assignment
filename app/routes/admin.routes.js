@@ -21,8 +21,8 @@ module.exports = app => {
         }
         req.login(user, { session : false }, async (error) => {
           if( error ) return next(error)
-
-          const body = { _id : user._id, email : user.email };
+          
+          const body = { id : user.id, username : user.username };
 
           const token = jwt.sign({ user : body },'top_secret');
           

@@ -15,4 +15,10 @@ module.exports = app => {
   // Delete Course
   app.delete("/courses/:courseId", passport.authenticate('jwt', { session : false }), courses.delete);
 
+  // Update a new Course
+  app.put("/courses/:courseId", passport.authenticate('jwt', { session : false }), courses.update);
+
+  // Sorting a single course field
+  app.get("/courses/search/:searchStr", courses.searchCourses);
+
 };

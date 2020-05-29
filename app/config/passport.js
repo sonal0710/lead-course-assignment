@@ -6,6 +6,18 @@ const ExtractJWT = require('passport-jwt').ExtractJwt;
 
 module.exports = function(passport) {
 
+    // used to serialize the user for the session
+    passport.serializeUser(function(user, done) {
+        done(null, user.id);
+    });
+
+    // used to deserialize the user
+    passport.deserializeUser(function(id, done) {
+        connection.query("SELECT * FROM users WHERE id = ? ",[id], function(err, rows){
+            done(err, rows[0]);
+        });
+    });
+
     // SIGNUP
     passport.use(
         'local-signup',

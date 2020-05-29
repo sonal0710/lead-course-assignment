@@ -21,7 +21,8 @@ exports.sortCourses = (req, res) => {
 
 exports.searchCourses = (req, res) => {
   let searchStr = req.params.searchStr;
-  Courses.searchCourses(searchStr).then( function(success){
+  let categoriesList = req.body.categories;
+  Courses.searchCourses(searchStr, categoriesList).then( function(success){
       return res.send(success);
   }).catch( function(error){
       return res.send(error);
@@ -42,12 +43,14 @@ exports.create = (req, res) => {
     name: req.body.name,
     popularity: req.body.popularity,
     difficulty_level: req.body.difficulty_level,
-    updated_by: req.body.updated_by,
+    updated_by: req.user.id,
     created_date: dateTime.create().format('Y-m-d H:M:S'),
     updated_date: dateTime.create().format('Y-m-d H:M:S')
   };
   
-  Courses.create(course).then( function(success){
+  let categories = req.body.categories;
+
+  Courses.create(course, categories).then( function(success){
       return res.send(success);
   }).catch( function(error){
       return res.send(error);
@@ -61,4 +64,33 @@ exports.delete = (req, res) => {
   }).catch( function(error){
       return res.send(error);
   });
+};
+
+exports.update = (req, res) => {
+  let courseId = req.params.courseId;
+  // Validate request
+  if (!req.body) {
+    res.status(400).send({
+      message: "Content can not be empty!"
+    });
+  }
+
+  // Create a Course
+  const course = {
+    author: req.body.author,
+    name: req.body.name,
+    popularity: req.body.popularity,
+    difficulty_level: req.body.difficulty_level,
+    updated_by: req.user.id,
+    updated_date: dateTime.create().format('Y-m-d H:M:S')
+  };
+  
+  let categories = req.body.categories;
+
+  Courses.update(courseId, course, categories).then( function(success){
+      return res.send(success);
+  }).catch( function(error){
+      return res.send(error);
+  });
+  
 };
