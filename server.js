@@ -18,20 +18,8 @@ app.get("/", (req, res) => {
   res.json({ message: "Welcome to Lead Course application." });
 });
 
-app.get("/failureRedirect", (req, res) => {
-  res.json({ message: "Wrong Credentials, Try Again" });
-});
-
-
-app.use(session({
-	secret: 'vidyapathaisalwaysrunning',
-	resave: true,
-	saveUninitialized: true
- } )); // session secret
-app.use(passport.initialize());
-app.use(passport.session());
-
 require("./app/routes/courses.routes.js")(app, passport);
+require("./app/routes/admin.routes.js")(app, passport);
 
 // set port, listen for requests
 const PORT = process.env.PORT || 3000;

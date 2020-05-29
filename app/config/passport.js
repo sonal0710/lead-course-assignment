@@ -1,23 +1,12 @@
 var LocalStrategy   = require('passport-local').Strategy;
 var bcrypt = require('bcrypt-nodejs');
-const connection = require("../models/db.js")
+const connection = require("../models/db.js");
+const JWTstrategy = require('passport-jwt').Strategy;
+const ExtractJWT = require('passport-jwt').ExtractJwt;
 
 module.exports = function(passport) {
 
-    // used to serialize the user for the session
-    passport.serializeUser(function(user, done) {
-        done(null, user.id);
-    });
-
-    // used to deserialize the user
-    passport.deserializeUser(function(id, done) {
-        connection.query("SELECT * FROM users WHERE id = ? ",[id], function(err, rows){
-            done(err, rows[0]);
-        });
-    });
-
     // SIGNUP
-
     passport.use(
         'local-signup',
         new LocalStrategy({
@@ -74,4 +63,20 @@ module.exports = function(passport) {
             });
         })
     );
+
+
+    //This verifies that the token sent by the user is valid
+    passport.use(new JWTstrategy({
+    
+    secretOrKey : 'top_secret',
+    //we expect the user to send the token as a query parameter with the name 'secret_token'
+    jwtFromRequest : ExtractJWT.fromAuthHeaderAsBearerToken()
+    }, async (token, done) => {
+    try {
+        //Pass the user details to the next middleware
+        return done(null, token.user);
+    } catch (error) {
+        done(error);
+    }
+    }));
 };
